@@ -1,0 +1,52 @@
+\section{Summary}
+\label{sec:summary}
+All these points mentioned above may be critical for efficiency, but not all of them will be as succesful as the others. This summary will give a bullet list of what has to be considered and when this point will be critical to the overall architecture. After a general word about algorithm parallelization I will go into detail about what the critical points with regard to hardware and software are. The last section will then give the conclusion.
+
+\subsection{Algorithm parallelization}
+\label{subsec:algorithm}
+ From the very highest level of abstraction to the lowest level within the code one can manipulate the basic algorithms used in the software. In the world of video encoding in general there are many algorithms like the wavelet transformation or the macro block prediction. If there is excessive use of these algorithms, it might be valuable to evaluate these in parallel. Most of the common algorithms already have concurrent versions one can implement. Due to the generalizing approach of this essay, I will spare the description of example algorithms. On a theoretical level they are mostly no different from complex software. They have I/O points and may be centered around data or tasks. They can be split in subtasks or work on divided data. The pitfalls of serial interdependencies and the difficulties in merging the data are the same as in complex software.
+
+The efficiency of the algorithm parallelization is strongly dependent on the software setup. In some cases, the single algorithms will show up on top of time intensive functions and most likely, they will be the most often called functions. When the core algorithms dominate the rest of the program, they might get split to some of the SPEs. Most of these algorithms work in a functional way, consuming the input and generating one new output with compact code. Thus they are not ideally for multiple SPE parallelization, but utilize one SPE ideal. As before, with other hardware setups, the decision on what to parallelize will differ.
+
+
+\subsection{Hardware}
+\label{subsec:hardware}
+To gain an optimal speedup, the used hardware has to fit the problem. Today the single processor architectures are come to maturity and the possibilities to improve their performance shrink. Cash sizes exceed the most problems size and flash memory keeps getting cheaper. The processor frequency rate growth has decayed and the upcoming 32nm processors touches physical restrictions. Cooling boundaries and electric interferences limit sinlge core frequency scaling, which the multiple core architectures challenges to overcome. The limiting factor there is the idle time during input/ output or communication.
+
+When talking about multiple processing units, the overall goal is to keep computing even when waiting for input and output and also while waiting for other parts the program to terminate.
+There is not a single optimal architecture and many variations compete. Different architectures focus on different aspects of parallelization. The cell for example has uniform processors to simplify their usage, while a grid of computers spread throughout the Internet does not care about his and focus on massive amount of processors. The choice for one of the parallel architecture holds more influential decisions then the single processor architectures. The important questions for the architecture are:
+\vskip 12pt
+\indent Are the multiple processors\dots
+\begin{itemize}
+   \item uniform/variant in their design?
+   \item hierarchically ordered?
+   \item using the same data store?
+   \item using the same code store?
+   \item connected with high/low latencies?
+   \item connected hierarchically?
+\end{itemize}
+The more similarities between the problem and the hardware architecture exist, the easier and more efficient the parallel implementation will be.\\%examples?
+
+
+\subsection{Software}
+\label{subsec:software}
+On the software side, the design is set by the former implementation and can not be choosen, but have to recognize which patterns emerge dominant and which patterns may be neglected because of insufficient speedup. To gain an idea of these patterns, a flow graph and time statistic will help. The estimation of recursive or iterative code calls can be counted by profiling tools and will give further insight into the design concept of the software. Last but not least, serial dependencies between the tasks have to be figured out manually.
+
+The decision is then, where to cut and how to restructure the problem. The minimization of I/O is the ultimate goal, but the way to this goal will vary. Sometimes it is more efficient to pass the manipulated data between the processors, because the execution time varies. Sometimes it is advantageous to change the code and keep the data, because the code is smaller than the data itself. For example, when decoding a video stream it is of exceptional importance to be in time. The optimal capacity use is not that important and one processor can be spent for variable scheduling.
+
+\subsection{Conclusion}
+\label{subsec:conclusion}
+In practice, the decisions for a hardware architecture and a concept for parallelization are not binary. It is most likely that some parts of the software are highly serial and others benefit from, for example, data centered optimization. In other setups, the complexity of the hardware is also progressive. In the Cell, there is an autonomous PPU to handle scheduling. In future architectures, this scheduling may have to be coded manually. It is also possible, that a grid of single and multiple processor architectures get mixed, and often the hardware is set by other factors and the programmer has to get the optimum out of it.
+
+At this complexity level, the creativity, experience and ambition  of the programmer will grant most benefit and success over automated parallelization. The flexibility to switch from one design to another and to mix them is crucial for good parallelization. A skeptical evaluation of the program with profiling tools can progressively increase performance. At the first approach, it is often the case, that the serial program is faster than the serial, but the mechanics shown in this essay can and shall be applied iteratively.
+%iterative task
+%creative task
+
+% mix trategies
+
+
+
+%\subsection{subsection}
+%\subsubsection{subsubsection}
+%\paragraph{paragraph}
+%\subparagraph{subparagraph}

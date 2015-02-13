@@ -1,0 +1,38 @@
+\section{Examples}
+\label{sec:examples}
+Here I will give an overview about some basic parts of a typical video encoding algorithm set. The examples are chosen to give a vivid idea about video encoding in general. Afterwards I will reveal the improvements of these points in the H.264 standard and their implications for parallelization. As a generalizing step, the next sections will enlist mechanics of parallelization and how the given examples affect them.
+%Compare it briefly to other encoding schemes; have they taken a different approach to parallelization?
+%Could this approach be applied to other architectures? If specific to the Cell, then explain why.
+
+
+\subsection{Wavelet transformation}
+\label{susec:wt}
+In the simplest case, a picture is a map of bits, indicating the color of one pixel in the picture. This is very inefficient. The most common technique of finding an adequate representation is the wavelet transformation.
+
+The picture itself is interpreted as a 2 dimensional wave of values representing the color values.\footnote{In fact, there are most likely 3 waves, one for every aspect of one pixel. Either the red, green and blue or the hue, saturation and color value, depending on the chosen color model.}
+This wave is then split up in a set of weighted predefined standard waves, which reassemble the picture. To minimize the amount of preset waves, the picture is split into many small blocks. One of these block usually has a dimension 8x8 pixels.
+These weights of waves now can be stored with good compression, for there are few highly likely waves and a lot of wave that match with a very small weight or not at all.
+The act of creating these wavelets is quite a complicated matrix operation if done by hand, but efficient when done by a computer.
+
+\subsection{Block matching}
+\label{subsec:bm}
+Assuming that we have a set of pictures forming the movie stream, the amount of duplicate information is massive and redundant. On an analogue filmstrip this is not that big of a problem, in digital this wasted space could be used to improve the resolution.
+As a fist step, the single pictures are stored with different precision, thus giving a hierarchy. Frames with lower resolution are differentially coded in relation to the higher resolution frames.
+The idea behind this approach is, that the minimal information of a new picture is the difference to the old picture. This holds, if there is an actual change at the single values of the picture.
+In practice, is change appears as a value change, where in fact it is a movement. Within a pan shot, the position related pixels of two picture change their value, but in fact the position between to value related pixels changes.
+To find the right vector between an optimal alike set of pixels of two pictures is called block matching. This process in general is not efficient, but results with growing computational effort in better movie quality. At this step, one can save time and lose quality or improve it by executing some more iterations. In the video encoding process, this will be the part benefiting from the speedup on other parts.
+
+\subsection{Problem generalization}
+These two problems were chosen because they exhibit two quite different aspects, that one has to take in regard to parallelizing software.
+The wavelet transformation is a typical matrix operation, quite time consuming, but without any I/O. Floating-point arithmetics in matrices are essential in scientific computing. Many large supercomputer setups are highly tuned towards this and one can rely on a publication such as \cite{CF06} which focuses on exactly the topic of scientific computing on the cell. On problems like these, a single SPU can bring up its full computation power without much interruption. The core will be busy all the time and a thread of matrix computation is fine to fill unused waiting time in between other threads.
+
+The block matching on the other hand is a spot to put your mind on. With time and space dependencies between the blocks this can easily lead to many context switches, inconclusive data references, if the macro block passes through some iterations of optimization or even deadlocks. A high level of attention and knowledge of the process is necessary, if this part is converted towards parallelization. Compensating this, the macro block segmentation already is an accommodation toward parallelization. If these operation would be executed on the complete picture, no SPU would have a chance to keep the data in its storage. The single macro block however can be asserted by one SPU with ease.
+
+To recognize and distinguish between these kinds of time filling tasks(wavelet transformation) and fragmented processes(block  matching)lies within the responsibility of the programmer.
+Identifying already segmented operations and resolve time and space dependencies usually is hard work, but interleaving these different problem styles may lead to better load factor of the cores, thus improving the overall performance.
+
+\subsection{H.264 specifics}
+\label{subsec:h264}
+Both of these algorithms rely on a partitioned picture. It won't be practical to create wavelets on the whole picture as it is useless to predict movement of complete full size pictures. In previous video encoding standard, the size of the macro blocks on which the previous algorithms are base were set, to a 8x8 pixel set. In H.264 however, this no longer is the case. The macro block sizes 4x4, 4x8, 8x16 and 16x16 were introduced rising the complexity searching for matching macro blocks and increasing the predefined waves for the wavelet transformation.
+
+In addition, the prediction macro blocks are no longer restricted to the pictures before and after the current, but is expanded to up to two pictures in both directions and even multiple references for one macro block.\cite{WS03} These improvements in the standard will use the capacity of more than one core.

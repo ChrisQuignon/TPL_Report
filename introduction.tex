@@ -1,0 +1,23 @@
+\section{Introduction}
+\label{sec:introduction}
+It is necessary to understand the basics of the modified software and the employed hardware, even if both hold as an example and shall be generalized in a further step.
+
+\subsection{Cell processor}
+\label{subsec:cell}
+Video encoding as a vector intensive computation problem is adressed explicitly by the design of the IBM Cell processor (Cell).\cite{PTC} I will give a short overview about the structure of a Cell, as it is used in the Cell Blade QS21 and the Sony Playstation 3.
+From the lower end, the Cell is assembled of one Power Processing Unit (PPU), eight Synergistic Processing Elements (SPEs) each containing one Synergistic Processing Unit (SPU).\footnote{There are inconclusive abbreviations due to different concepts and versions of the Cell, referring to the eight processors as Supplemental Processing Units, Streaming Processing Units and Synergistic Processing Units. I will will referr to the complete element, containing additional local store and a Memory Flow Controller as the SPE and the processor itself as the SPU}
+The computational power of the cell lies within the SPUs. Their local store has to contain the executed code and the modified data. This store represents a flat 18bit adresspace accessed using Direct Memory Access (DMA) via the the Element Interconnection Bus (EIB), which is the very same for all 8 SPUs.
+The instructional architecture of the Cell has a Single Instruction, Multiple Data (SIMD) design\cite{SIMD}, while the topological architecture is  has Multi-Processor System on a Chip (MPSoC).\cite{scop3} For other architectures like a grid of incoherent processors the basic insights of this report will hold, too, but the performance will vary and scale at different spots. The conclusions on data- and task parallelization may vary and urge different conclusions, as pointed out in section \ref{subsec:hardware}.
+
+\subsection{Video Encoding}
+\label{subsec:video}
+%Compare it briefly to other encoding schemes; have they taken a different approach to parallelisation?
+The problem of video encoding is a wide and complicated field. Every few years, technology and research allow improvements of solid algorithms established in previous iterations. The step to multiple core systems is not completely accomplished, but there are already mechanics and procedures to most techniques used in video encoding. Even at its most basic level, it is a mixture of compression, prediction and file formats borrowed from sound and picture standards as well as video specific components. From the manner of producing a video, pictures and sound are inherent aspects and compression is a necessity when dealing with such big amounts of data. For demonstration I choose to focus on the picture and prediction parts, not the sound nor the compression which can easily be abstracted away. For the sound, one may just assume that the soundfile is trailed to the video stream. The compression indeed may be arbitrary complex. Most common compression types are highly serial and therefore not suited for discussion here. For both sound and compression, the ahead shown mechanics will also result in some kind of parallelization speedup.
+
+Starting from a series of pictures I now will go one step downwards, showing how one picture is assembled efficiently and one step upwards, connecting these pictures to gain and save information that lies within the sequence of these pictures.
+
+
+
+%\subsubsection{}
+%\paragraph{paragraph}
+%\subparagraph{subparagraph}

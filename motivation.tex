@@ -1,0 +1,19 @@
+\section{Motivation}
+\label{sec:motivation}
+As more and more computers will have multiple processors, it will become necessary to support these architectures for already written software. The parallelization of this software often will be the responsibility of a programmer that hasn't written the original code. Without exact knowledge of the specific implementation, it is hard to decide which parts of the code may benefit most from parallelization and which parts will cause problems if implemented concurrently.
+
+Using the example of the parallelization of the H.264 video encoder on the IBM Cell processor, this essay aims for a small guide through the process of porting existing software to a parallel version, taking advantage of multiple cores. 
+Modern video encoding serves a great exemplar to most other complex software. On the technical side it is critical in time and processes a huge amount of data, on the principles of teaching the  problem is widely known in the field of computer science and everyone can imagine and reconstruct the challenges faced during the encoding process. 
+
+In \cite{Kim_automatich.264}, Kim Kyunghyun, Lee Jaewon,Park Hae-woo and Ha Soonhoi already achieved a partially automated implementation of the H.264 encoder. Nonetheless a good knowledge of the code and algorithm was necessary to adjust the parameters for the parallelization. 
+The H.264 codec was also examined in respect with scalability in parallelization. In  \cite{scaleh264}, the conclusion is that neither data- nor task parallelization, but their novel strategy, called "3D-Wave", results in optimum parallelization. This specific to video encoding, however, is of no use when generalized to other program and therefor is not considered. If wished, one can reproduce the task and inspect and use the open source implementation of the x.264%\cite{Al_x264:a}
+ encoder.
+
+\subsection{Relevant literature}
+\label{subsec:basis}
+Shrivathsa Bhargav, Jonathan Chen, Larry Chen, Thomas John and Jaime Peretzman have ported the x264 implementation of the H.264 video encoding algorithm to the Cell Blade QS21. An excellent report of their work was published in \cite{BS08}.
+The restriction of this essay forces me to skip some of the more detailed and complicated challenges, but section ~\ref{sec:examples} will examine two interesting parts of the software. To contribute to their work, I will generalize their experiences on these examples and show aspects that will be applicable to other problems.
+%I expect to gain a more general but not too theoretical guideline for any other software that [INSERT CRITERIA]
+%Not the whoe H.264 is used!
+%Really motivate the problem; why is this special parallel algorithm required?
+%Briefly explain how parallelism is exploited on modern commodity processors (intel/amd's latest offerings) to speed up video encoding.

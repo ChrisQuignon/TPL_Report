@@ -1,0 +1,23 @@
+\section{Data parallelization}
+\label{sec:data}
+A straight forward idea to scale processing software to multiple cores is to split up the data that has to be processed and give every core one chunk of this data. In this section, the way in which data-centered approaches might be of help will be discussed.  The last part will then generalize the ideas of the two preceding ideas.
+
+\subsection{Video stream splitting}
+\label{subsec:stream}
+The splitting of the video stream into 8 equal parts to handle one part by each SPU might look like a good idea. Without touching the code, this is, regarding the implementation time, a very quick way to solve the problem. A simple cut detection could avoid a break in scene and move it to existing cuts. Minor fixes have to be done to gain a single output file. This of course is not efficient in terms of idle time. In fact the idle time of the serial program will just be transfered to the "parallel" program. On top of this, there will be a needless overhead handling I/O to every SPU limited by the EIB. The limitation, that the code executed by the SPU must be in its own store, demands that the complete code base has to be available on every single SPU. This occupies valuable space, leading to even more I/O. Additionally, before and after the encoding processing time is needed to separate and merge the stream. 
+
+\subsection{Frame splitting}
+\label{subsec:framesplit}
+Another idea to cut the video stream is, to split the video into single frames and handle each frame at once by the SPUs. As before, the code has to be at every SPU, but the preceding splitting has gone. With smaller parts, the idle time on the SPUs waiting for the input would be decreased. But as described in section \ref{subsec:video} the very nature of modern video encoding has quite a lot interdependencies between frames. These dependencies have to be communicated between the SPUs, blocking time of both SPUs and occupying the EIB. Even worse, these dependencies will also direct to already finished frames in the main store. I can not estimate if this will exceed the video stream splitting method in I/O overhead, but the gap between both methods won't be very big.
+
+\subsection{Divide and conquer}
+\label{subsec:divide}
+%may be enlengthened with a divide and conquer cheerup
+Both of the above ideas have successful application, if the problem isn't that complex and the data not that big. One example of a problem type this will hold is list ranking. \cite{listranking} had shown that the partition technique hides memory latencies and gave these algorithms a speedup of 8.34 if the complete cell setup is exploited in comparison to just using just the PPU. This is achieved by a a generic work partitioning technique to hide memory latency.
+
+As elaborated in section \ref{subsec:h264}, the H.264 already incorporates data partitioning. Macro block partitioning, which splits the picture in macro blocks of variable size in respect to their importance to the picture and the complexity of their content is a fine way to split the picture. The variable size is linked to additional costs, but the wavelets and the the block matching algorithms can be implemented to work on different block sizes with the same code. The predefined wavelets are the exception, because they are normally stored explicitly and not generated every time they are used.
+
+However, within H.264 data partitioning isn't ideal. The block matching generates dependencies between the partitioned data. In the H.264 these dependencies are no longer restricted to 3 pictures (the one before, the very same and the one following) but exceeds to 5 pictures and allows multiple references. These references interfere with the partitioning paradigm, because they reconnect data that was supposed to be separated. Every reference results in communication and I/O overhead between the SPUs.
+
+%\paragraph{paragraph}
+%\subparagraph{subparagraph}

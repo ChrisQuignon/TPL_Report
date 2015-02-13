@@ -1,0 +1,44 @@
+\section{Task parallelization}
+\label{sec:task}
+Besides the data centered approaches i will now focus on some more elaborate techniques to improve parallelization in a given software.
+After giving an introduction of the general goal of this part, i again will discuss two methods. This time both of them will introduce profiling programs to reveal further insight on the software to parallelize. Both tools are freely available under a GNU license and represent a general idea duplicated by many similar programs with various additional features and interfaces to other tools. Both tools are widespread in the Linux world and find numerous usage in big projects.\\
+In this section, the video encoding example can be directly replaced by any other large software and serves merely as an already introduced example. Therefore the last step of generalizing the previous two methods is dropped.
+
+\subsection{Function mapping}
+\label{subsec:function}
+As the data centered approach has not yield unfettered improvements, we have to go down to the code of the software. As said before, i will not go into automatic parallelization efforts. The common way of getting information about code without reading through all of it or its documentation is the debugging output. All programming languages compilers with a practical use in mind are able to produce debugging output with different granularity and the ability to inspect different aspects of the program, its execution or the compilation itself. This information can then be rearranged and aggregated to give a survey about the corresponding part of interest.
+%Überleitung
+
+\subsubsection{Function call graph}
+\label{subsubsec:leafs}
+Every program can be understood as a graph of function calls, forming a call graph.\cite{cgraph}
+This call graph can give valuable information on how the program is structured. Is it a recursion heavy program? Does it have a delegating part? Which design patterns were used? All these points give important information when considering parallelization. It surly is not a good idea to split a factory design pattern.\footnote{In a factory, an object is not produced by a method but by a constructor. This pattern is used, if the object is large and has to be produced by a sequence of actions.}
+The structure of the graph may indeed show where a functions serves as a hub to call and manage other functions. This often happens when dealing with grown code. These hubs often can be separated into sub-functions which can then be executed in parallel.
+
+Another possibility is to identify subtrees without any dependencies that may be delegated to single SPUs.
+To gain the graph representation of the program, I decided, based on \cite{graphanalysis}, to use "cflow".
+
+\begin{quote}
+GNU cflow analyzes a collection of C source files and prints a graph, charting control flow within the program.
+\noindent
+GNU cflow is able to produce both direct and inverted flowgraphs for C sources. Optionally a cross-reference listing can be generated. Two output formats are implemented: POSIX and GNU (extended).\footnote{\url{http://www.gnu.org/software/cflow/} as on \today}
+\end{quote}
+Cflow can be obtained at \url{http://www.gnu.org/software/cflow/}.
+
+\subsubsection{Finding time intensive functions}
+\label{subsubsec:time}
+Another concern that can not be solved by the call graph is the time spent in single functions. Even if we find the hubs and excellent break points in the software, we have to guess how long one SPU will be busy executing the subgraph. To get an idea of how long the serial, or the parallelized version, execute within a function, I suggest using gprof.
+Gprof can be obtained at \url{http://sourceware.org/binutils/docs/gprof/index.html}. More detailed information was published in \cite{gprof}.
+
+\subsection{Weighted graph}
+\label{subsec:weigthed}
+The ultimate goal of these to essential informations about the program is a weighted graph of the core functions, their dependencies and their consumption of time.
+With either the gathered information, excellent documentation, or expert knowledge about the software this graph doesn't have to be explicitly written down. But the programmer has to decide where to split the tasks on the basis of this information. This usually is a creative and momentous decision and most likely the point where the concept of parallelization succeeds or fails. Therefore it is necessary to reiterate this process of analytic profiling to adjust and renew a suboptimal parallelization design.
+
+
+%\begin{quote} 
+%The main drawbacks of task-level decomposition are load balancing and scalability.
+% Balancing the load is difficult because the time to execute each task is not
+% known a priori and depends on the data being processed. Scalability is a problem
+% because it is limited to the number of tasks, which typically is small.
+%\end{quote} \cite{scaleh264}
